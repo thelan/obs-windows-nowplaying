@@ -1,6 +1,13 @@
 # OBS Windows Now Playing
 
 This script gather the now playing title from the Windows api.
+Therefore, it's compatible with any media player that publish the track information trough this api.
+
+Reported working with:
+* Deezer (app)
+* Spotify (app/web chromium/web firefox)
+* YouTube (web chromium / web firefox)
+* Also, probably other websites that enable playback control via the multimedia keys 
 
 It updates the current title into a custom data in wize bot streaming tool.
 
@@ -11,8 +18,8 @@ It also can update a local text field to display on stream / debug
 1. Install [Python for Windows](https://www.python.org/downloads/windows/) (tested with 3.11)
 2. Install winsdk package
    
-    From a command prompt or powershell run the following command:
-    ```python -m pip install winsdk==1.0.0b9```
+    From a command prompt or powershell run the following command in the python install directory:
+    ```.\python.exe -m pip install winsdk==1.0.0b9```
 3. Log onto your Wize Bot account and gather the apikey:
    
     ![wizebot-apikey](https://github.com/thelan/obs-windows-nowplaying/blob/master/doc/wizebot-apikey.png?raw=true)
@@ -26,7 +33,7 @@ It also can update a local text field to display on stream / debug
 
    ![configure-python](https://github.com/thelan/obs-windows-nowplaying/blob/master/doc/configure-python.png?raw=true)
 
-    Add the script in the src directory to OBS and configure it
+    Add the script `wizebot-now-playing.py` from the src directory to OBS and configure it
 
    ![OBS-Configure-script](https://github.com/thelan/obs-windows-nowplaying/blob/master/doc/step-config-script.png?raw=true)
 5. Configure Wize Bot to use the Custom data
