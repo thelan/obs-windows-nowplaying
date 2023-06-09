@@ -5,6 +5,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+from winsdk.windows.media import MediaPlaybackType
 from winsdk.windows.media.control import GlobalSystemMediaTransportControlsSessionManager as MediaManager
 
 
@@ -53,6 +54,11 @@ def update_text():
     global apikey, wizebot_field, interval, source_name, last_data
     try:
         media_info = asyncio.run(get_media_info())
+
+        # Filter non music media
+        if media_info['playback_type'] != MediaPlaybackType.MUSIC:
+            return
+
     except OSError:
         obs.script_log(obs.LOG_WARNING, "Failed to get now playing")
         return
