@@ -6,8 +6,8 @@ import urllib.parse
 import urllib.request
 
 from winsdk.windows.media import MediaPlaybackType
-from winsdk.windows.media.control import GlobalSystemMediaTransportControlsSessionManager as MediaManager
-
+from winsdk.windows.media.control import GlobalSystemMediaTransportControlsSessionManager as MediaManager, \
+    GlobalSystemMediaTransportControlsSessionPlaybackStatus
 
 # -----
 # User overridable variables
@@ -20,6 +20,7 @@ source_name = ""
 # -----
 # Internal variables
 last_data = None
+last_state = None
 # ------------------------------------------------------------
 
 
@@ -32,6 +33,10 @@ async def get_media_info():
         info_dict = {song_attr: info.__getattribute__(song_attr) for song_attr in dir(info) if song_attr[0] != '_'}
 
         info_dict['genres'] = list(info_dict['genres'])
+
+        # Get playback info
+        playback_info = current_session.get_playback_info()
+        info_dict['playback_info'] = {attr: playback_info.__getattribute__(attr) for attr in dir(playback_info) if attr[0] != '_'}
 
         return info_dict
 
@@ -50,8 +55,8 @@ def set_wizebot_custom_data(api_key, key, value):
         obs.remove_current_callback()
 
 
-def update_text():
-    global apikey, wizebot_field, interval, source_name, last_data
+def update_text(force=False):
+    global apikey, wizebot_field, interval, source_name, last_data, last_state
     try:
         media_info = asyncio.run(get_media_info())
 
@@ -65,25 +70,34 @@ def update_text():
     now_playing = '{} - {}'.format(media_info['title'], media_info['artist'])
 
     # Skip update if nothing changed
-    if last_data == now_playing:
+    if not force and last_data == now_playing and last_state == media_info['playback_info']['playback_status']:
         return
 
     last_data = now_playing
+    last_state = media_info['playback_info']['playback_status']
 
     obs.script_log(obs.LOG_INFO, "Now playing '" + now_playing + "'")
     if apikey != '' and wizebot_field != '':
-        set_wizebot_custom_data(apikey, wizebot_field, now_playing)
+        if media_info['playback_info']['playback_status'] == GlobalSystemMediaTransportControlsSessionPlaybackStatus.PLAYING:
+            set_wizebot_custom_data(apikey, wizebot_field, now_playing)
+        else:
+            set_wizebot_custom_data(apikey, wizebot_field, '')
 
+    # Update text source if exists
     source = obs.obs_get_source_by_name(source_name)
     if source is not None:
         settings = obs.obs_data_create()
-        obs.obs_data_set_string(settings, "text", '{}         '.format(now_playing))
+        if media_info['playback_info']['playback_status'] == GlobalSystemMediaTransportControlsSessionPlaybackStatus.PLAYING:
+            text = '{}         '.format(now_playing)
+        else:
+            text = ''
+        obs.obs_data_set_string(settings, "text", text)
         obs.obs_source_update(source, settings)
         obs.obs_source_release(source)
 
 
 def refresh_pressed(props, prop):
-    update_text()
+    update_text(force=True)
 
 
 def script_description():
