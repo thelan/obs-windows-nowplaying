@@ -71,7 +71,7 @@ def update_text():
     source = obs.obs_get_source_by_name(source_name)
     if source is not None:
         settings = obs.obs_data_create()
-        obs.obs_data_set_string(settings, "text", now_playing)
+        obs.obs_data_set_string(settings, "text", '{}         '.format(now_playing))
         obs.obs_source_update(source, settings)
         obs.obs_source_release(source)
 
